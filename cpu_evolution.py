@@ -1,3 +1,4 @@
+#import libraries
 import numbers
 import numpy as np
 import scipy
@@ -52,7 +53,7 @@ class spin_chain_evolution:
         for i in range(self.N):
             A = A @ self.tensorsy(i)
         return A
-    
+    #Define the model will be simulate
     def Bond_Hamiltonian(self, delta, Delta):
         H = 0 
         for n in range(self.N):
@@ -77,7 +78,7 @@ class spin_chain_evolution:
             else:#restrictions N+1=1
                 H += self.tensorsx(n) @ self.tensorsx(0) + self.tensorsy(n) @ self.tensorsy(0) + Jz * (self.tensorsz(n) @ self.tensorsz(0)) + D * (self.tensorsz(n) @ self.tensorsz(n))
         return H.real
-    
+    #get the eigenvalues and eigenvectors to calculate the correlations
     def eingenvalues_eingevector(self,H):
         #eigsxSGS, eivsxSGS = lobpcg(H,np.random.rand(H.shape[0],30), largest = False)
         eigsxSGS, eivsxSGS = eigsh(H, k =20, which = 'SA')
@@ -87,7 +88,7 @@ class spin_chain_evolution:
         minEVsxSGS = min(avasxSGS)  #pega os autovalores menores
         pesmin = np.where(minEVsxSGS == avasxSGS)[0]
         return pesmin, sparse.csr_matrix(eivsxSGS)
-    
+    #Get the two bodies correlation
     def Valor_Esperado(self, graundseig,ketstate, A):
         vm = 0
         for pe in graundseig:
@@ -95,7 +96,7 @@ class spin_chain_evolution:
             p2vm = ((ketstate[:,pe]).reshape(1,-1))@ p1vm
             vm += (p2vm.toarray())[0][0]
         return (vm/graundseig.shape[0]).real   
-    
+    # Modeling the evolution of the system
     def Evolution(self,G, H):
         j = G[0]
         print(G)
@@ -140,7 +141,7 @@ class spin_chain_evolution:
             f.create_dataset("correlations_"+ str(j),data = np.array(VE), dtype ='f',compression="gzip")
             f.close()
             
- 
+    # Write the observables
     def write(self, L, H):
         if H=='Bilinear':
             featu = 3*(self.N/2+1)+ 4 #numero de correlações
@@ -158,7 +159,7 @@ class spin_chain_evolution:
         for i in L:
             j = i[0]
             os.remove("escrita_provisoria"+str(j)+".hdf5")
-
+#input the dimensionality of the system and the model
 spin_number = int(input("Spin Number: "))  
 model = input("Model: ")
 if model == 'XXZ':
