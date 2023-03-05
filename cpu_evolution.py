@@ -1,53 +1,59 @@
 #import libraries
-import numbers
-import numpy as np
-import scipy
-import time
-from scipy import sparse
-from scipy.sparse import csr_matrix, find
-from scipy.sparse.linalg import eigsh, eigs
-from scipy.sparse.linalg import lobpcg
-import sys
-import h5py
-import os.path
-import os
+import numbers # module for numerical types
+import numpy as np # module for numerical arrays and calculations
+import scipy # scientific computing library
+import time # module for time-related functions
+from scipy import sparse # module for sparse matrices
+from scipy.sparse import csr_matrix, find # Compressed Sparse Row matrix format and find nonzero elements
+from scipy.sparse.linalg import eigsh, eigs # module for eigenvalue and eigenvector calculations for sparse matrices
+from scipy.sparse.linalg import lobpcg # module for Locally Optimal Block Preconditioned Conjugate Gradient Method
+import sys # system-specific parameters and functions
+import h5py # module for reading and writing HDF5 files
+import os.path # module for common pathname manipulations
+import os # module for interacting with the operating system
         
 class spin_chain_evolution:
     def __init__(self, N):
+        #initialize spin operators
         self.Sx = (1/np.sqrt(2)) * sparse.csr_matrix(np.array([[0, 1, 0],[1, 0, 1], [0,1,0]]))
         self.Sy = (1j/np.sqrt(2)) * sparse.csr_matrix(np.array([[0, -1, 0], [1, 0, -1], [0, 1, 0]]))
         self.Sz = sparse.csr_matrix(np.array([[1,0,0], [0, 0, 0], [0, 0, -1]]))
         self.Id = scipy.sparse.identity(3)
-        self.N = N
-    #Definindo os tensores
+        self.N = N # number of spins in the chain
+     # define tensor product for Sx operator at site m
     def tensorsx(self,m):
         List = [self.Id if n!=m else self.Sx for n in range(self.N)]
         T = List[0]
         for i in range(len(List)-1):
             T = sparse.kron(T,List[i+1],format = "csr")
         return T
+    # define tensor product for Sy operator at site m
     def tensorsy(self,m):
         List = [self.Id if n!=m else self.Sy for n in range(self.N)]
         T = List[0]
         for i in range(len(List)-1):
             T = sparse.kron(T,List[i+1],format = "csr")
         return T
+    # define tensor product for Sz operator at site m
     def tensorsz(self,m):
         List = [self.Id if n!=m else self.Sz for n in range(self.N)]
         T = List[0]
         for i in range(len(List)-1):
             T = sparse.kron(T,List[i+1],format = "csr")
         return T
+     # define tensor product for Sz operators for all sites
     def tensorszprod(self):
         A = scipy.sparse.identity(3**self.N)
         for i in range(self.N):
             A = A @ self.tensorsz(i)
         return A
+    # define tensor product for Sx operators for all sites
     def tensorsxprod(self):
         A = scipy.sparse.identity(3**self.N)
         for i in range(self.N):
             A = A @ self.tensorsx(i)
         return A
+    # define tensor product for Sy operators for all sites
     def tensorsyprod(self):
         A = scipy.sparse.identity(3**self.N)
         for i in range(self.N):
